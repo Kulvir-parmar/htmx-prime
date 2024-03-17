@@ -1,0 +1,51 @@
+{{ block "index" .}}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title></title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="css/style.css" rel="stylesheet">
+    <script src="https://unpkg.com/htmx.org@1.9.11"
+        integrity="sha384-0gxUXCCR8yv9FM2b+U3FDbsKthCI66oH5IA9fHppQq9DDMHuMauqq1ZHBpJxQ0J0"
+        crossorigin="anonymous"></script>
+    </script>
+</head>
+
+<body>
+    {{ template "form" . }}
+    <hr />
+    {{ template "contacts" . }}
+</body>
+
+</html>
+{{ end }}
+
+
+{{ block "form" . }}
+<form hx-swap="outerHTML" hx-post="/contacts" hx-target="contacts">
+    Name: <input
+        {{ if .Values.name }} value="{{ .Values.name }}" {{ end }}
+        type="text" name="name" />
+    Email: <input
+        {{ if .Values.email }} value="{{ .Value.email }}" {{ end }}
+            type="text" name="email" />
+
+    {{ if .Errors }}
+    <div style="color:red">{{ .Errors.email }}</div>
+    {{ end}}
+    <button type="submit">Click me Daddy</button>
+</form>
+{{ end }}
+
+{{ block "contacts" . }}
+<div id="#contacts" style="display: flex; flex-direction:column">
+    {{ range .Contacts }}
+    <div>
+        Name : <span> {{ .Name }} </span>
+        Email: <span> {{ .Email }} </span>
+    </div>
+    {{ end }}
+</div>
+{{ end }}
