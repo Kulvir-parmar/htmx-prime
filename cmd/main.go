@@ -70,32 +70,48 @@ func newFormData() FormData {
 	}
 }
 
+type Page struct {
+	DB   DB
+	Form FormData
+}
+
+func newPage() Page {
+	return Page{
+		DB:   newDB(),
+		Form: newFormData(),
+	}
+}
+
 func main() {
 	e := echo.New()
 	e.Use(middleware.Logger())
 
-	myDB := newDB()
+	page := newPage()
 	e.Renderer = newTemplate()
 
 	e.GET("/", func(c echo.Context) error {
-		return c.Render(200, "index", myDB)
+		return c.Render(200, "index", page)
 	})
 
 	e.POST("/contacts", func(c echo.Context) error {
 		name := c.FormValue("name")
 		email := c.FormValue("email")
 
-		if myDB.hasEmail(email) {
+		if page.DB.hasEmail(email) {
 			formData := newFormData()
-			formData.Values["email"] = name
+			formData.Values["name"] = name
 			formData.Values["email"] = email
+
 			formData.Errors["email"] = "Email already Exists"
 
-			return c.Render(400, "form", formData)
+			// NOTE: fckin retard, HTMX not rendering statuscode = 400's
+			// find out later why and fix it. 200 is not good but it works
+			return c.Render(200, "form", formData)
 		}
 
-		myDB.Contacts = append(myDB.Contacts, newContact(name, email))
-		return c.Render(200, "contacts", myDB)
+		page.DB.Contacts = append(page.DB.Contacts, newContact(name, email))
+
+		return c.Render(200, "contacts", page)
 	})
 
 	e.Logger.Fatal(e.Start(":42069"))

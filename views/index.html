@@ -14,9 +14,9 @@
 </head>
 
 <body>
-    {{ template "form" . }}
+    {{ template "form" .Form }}
     <hr />
-    {{ template "contacts" . }}
+    {{ template "contacts" .DB }}
 </body>
 
 </html>
@@ -24,18 +24,15 @@
 
 
 {{ block "form" . }}
-<form hx-swap="outerHTML" hx-post="/contacts" hx-target="contacts">
-    Name: <input
-        {{ if .Values.name }} value="{{ .Values.name }}" {{ end }}
-        type="text" name="name" />
-    Email: <input
-        {{ if .Values.email }} value="{{ .Value.email }}" {{ end }}
-            type="text" name="email" />
+<form hx-swap="innerHTML" hx-post="/contacts">
+    Name: <input {{ if .Values.name }} value="{{ .Values.name }}" {{ end }} type="text" name="name" />
+    Email: <input {{ if .Values.email }} value="{{ .Values.email }}" {{ end }} type="text" name="email" />
 
-    {{ if .Errors }}
-    <div style="color:red">{{ .Errors.email }}</div>
-    {{ end}}
     <button type="submit">Click me Daddy</button>
+
+    {{ if .Errors.email }}
+    <div style="color: red">{{ .Errors.email }}</div>
+    {{ end }}
 </form>
 {{ end }}
 
