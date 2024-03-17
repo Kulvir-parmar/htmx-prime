@@ -3,6 +3,8 @@ package main
 import (
 	"html/template"
 	"io"
+	"slices"
+	"strconv"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -22,15 +24,20 @@ func newTemplate() *Template {
 	}
 }
 
+var id = 0
+
 type Contact struct {
 	Name  string
 	Email string
+	Id    int
 }
 
 func newContact(name, email string) Contact {
+	id++
 	return Contact{
 		Name:  name,
 		Email: email,
+		Id:    id,
 	}
 }
 
@@ -47,6 +54,15 @@ func (d *DB) hasEmail(email string) bool {
 		}
 	}
 	return false
+}
+
+func (d *DB) indexOf(id int) int {
+	for i, contact := range d.Contacts {
+		if contact.Id == id {
+			return i
+		}
+	}
+	return -1
 }
 
 func newDB() DB {
@@ -109,9 +125,27 @@ func main() {
 			return c.Render(200, "form", formData)
 		}
 
-		page.DB.Contacts = append(page.DB.Contacts, newContact(name, email))
+		contact := newContact(name, email)
+		page.DB.Contacts = append(page.DB.Contacts, contact)
 
-		return c.Render(200, "contacts", page)
+		c.Render(200, "form", newFormData())
+		return c.Render(200, "oob-contact", contact)
+	})
+
+	e.DELETE("/contacts/:id", func(c echo.Context) error {
+		idStr := c.Param("id")
+		id, err := strconv.Atoi(idStr)
+		if err != nil {
+			return c.String(400, "Invalid Id")
+		}
+
+		index := page.DB.indexOf(id)
+		if index == -1 {
+			return c.String(400, "Contact does not exist")
+		}
+
+		page.DB.Contacts = slices.Delete(page.DB.Contacts, index, index+1)
+		return c.NoContent(200)
 	})
 
 	e.Logger.Fatal(e.Start(":42069"))
